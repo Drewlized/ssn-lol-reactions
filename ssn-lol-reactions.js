@@ -7,48 +7,115 @@
 
   const REACTION_COUNT = 5;
   const REACTION_DELAY_MS = 700;
-  const TRIGGER_REGEX = /lol/i;
 
-  const names = [
-    "PixelPanda", "CloudyVibes", "ItsNova", "ToastWizard", "LunaPlays",
-    "NeonKoala", "MangoMode", "GhostByte", "SillyGoose", "FrostyFox",
-    "Banana.exe", "CosmicDrew", "WaffleKing", "LilacStorm", "TurboTurtle",
-    "BobaEnjoyer", "NoScopeNina", "ChillMantis", "EchoRider", "PotatoLord"
+  // Triggers from message CONTENT across Twitch, YouTube, and Kick.
+  const TRIGGER_REGEX =
+    /\b(?:lol+|lo+|lmao+|lmfao+|rofl+|haha+|hehe+|xd+|kekw|kek|lulw?|omegalul|lolwut|pogs|im dead|i'm dead|im weak|i'm weak|dead af|crying|dying|im crying|i'm crying|no way|bro what|thats funny|that's funny|too funny|im wheezing|i'm wheezing|bruh|nahhh+|lmaooo+)\b|😂|🤣|💀|😭|😹|😆|😜|🤡/i;
+
+  const adjectives = [
+    "Sleepy", "Cosmic", "Turbo", "Sneaky", "Goofy",
+    "Chaotic", "Lucky", "Tiny", "Funky", "Spicy",
+    "Frosty", "Golden", "Bouncy", "Cursed", "Happy",
+    "Wobbly", "Neon", "Crispy", "Wild", "Fluffy",
+    "Silly", "Mighty", "Nervous", "Electric", "Mystic",
+    "Pixel", "Chunky", "Speedy", "Cheeky", "Dizzy",
+    "Chill", "Wacky", "Hyper", "Cloudy"
+  ];
+
+  const nouns = [
+    "Panda", "Potato", "Wizard", "Koala", "Penguin",
+    "Noodle", "Pickle", "Goblin", "Turtle", "Banana",
+    "Fox", "Mango", "Dinosaur", "Waffle", "Monkey",
+    "Dragon", "Toast", "Duck", "Bunny", "Muffin",
+    "Cactus", "Raccoon", "Shark", "Goose", "Cookie",
+    "Robot", "Donut", "Frog", "Kitten", "Llama",
+    "Chicken", "Nugget", "Blob", "Coconut"
+  ];
+
+  const emojis = [
+    "😂", "😭", "💀", "🤣", "😹", "😆",
+    "🤡", "🔥", "💀💀", "😭😭", "LMAOOO",
+    "NAHHH", "BROOO", "💀😭", "HELP"
   ];
 
   const reactions = [
-    "LMAOOO", "IM CRYING 😭", "NAHHH 💀", "BRO WHAT", "LOL 😂",
-    "I CANT", "THAT GOT ME", "HELP 😭", "AIN'T NO WAY", "💀💀💀",
-    "HAHAHAHA", "W CHAT", "THIS IS TOO FUNNY", "STOPPPP", "NO WAY LOL"
+    () => `BRO ${randomItem(["WHAT", "PLEASE", "STOP", "IM DONE", "NO WAY"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["LMAOOO", "LMFAOOO", "HAHAHAHA", "IM CRYING", "NAHHH"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["AIN'T NO WAY", "NO SHOT", "NOT ME", "WHAT DID I JUST SEE", "IM WEAK"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["BROOOO", "DUDEEE", "HELP ME", "I CANT", "STOPPPP"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["THIS IS CRAZY", "THAT WAS WILD", "IM ACTUALLY DEAD", "TOO FUNNY", "W CHAT"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["LUL", "LOL", "KEKW", "OMEGALUL", "HAHA"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["im", "bro im", "nah im", "actually im"])} ${randomItem(["dead", "crying", "wheezing", "weak", "done"])} ${randomItem(emojis)}`,
+    () => `${randomItem(["LOOOOOOL", "LMAOOOO", "HAHAHAHAHA", "HEHEHE", "LMFAOOOO"])}`,
+    () => `${randomItem(["WHAT", "BRO", "NAH", "YO", "WAIT"])} ${randomItem(["😭", "💀", "😂", "🤣"])} ${randomItem(["😭", "💀", "😂", "🤣"])}`
   ];
 
-  // Twitch's standard chat color palette.
-  const twitchFallback = [
-    "#0000FF", "#8A2BE2", "#5F9EA0", "#D2691E",
-    "#FF7F50", "#1E90FF", "#B22222", "#DAA520",
-    "#008000", "#FF69B4", "#FF4500", "#FF0000",
-    "#2E8B57", "#00FF7F", "#9ACD32"
+  const platformColors = {
+    twitch: [
+      "#0000FF", "#8A2BE2", "#5F9EA0", "#D2691E",
+      "#FF7F50", "#1E90FF", "#B22222", "#DAA520",
+      "#008000", "#FF69B4", "#FF4500", "#FF0000",
+      "#2E8B57", "#00FF7F", "#9ACD32"
+    ],
+    youtube: [
+      "#4285F4", "#EA4335", "#34A853", "#FBBC05",
+      "#AB47BC", "#00ACC1", "#FF7043", "#7E57C2",
+      "#26A69A", "#EC407A", "#5C6BC0", "#9CCC65"
+    ],
+    kick: [
+      "#53FC18", "#8CEB52", "#38BDF8", "#A78BFA",
+      "#F472B6", "#FBBF24", "#FB7185", "#2DD4BF"
+    ]
+  };
+
+  // Weighted platform selection:
+  // Twitch 45%, YouTube 45%, Kick 10%.
+  const platformChoices = [
+    "twitch", "twitch", "twitch", "twitch", "twitch",
+    "twitch", "twitch", "twitch", "twitch",
+    "youtube", "youtube", "youtube", "youtube", "youtube",
+    "youtube", "youtube", "youtube", "youtube",
+    "kick", "kick"
   ];
 
-  // Readable fallback colors for YouTube and Kick.
-  const youtubeFallback = [
-    "#4285F4", "#EA4335", "#34A853", "#FBBC05",
-    "#AB47BC", "#00ACC1", "#FF7043", "#7E57C2",
-    "#26A69A", "#EC407A", "#5C6BC0", "#9CCC65"
-  ];
+  const iconPaths = {
+    twitch: "./sources/images/twitch.png",
+    youtube: "./sources/images/youtube.png",
+    kick: "./sources/images/kick.png"
+  };
 
-  const kickFallback = [
-    "#53FC18", "#8CEB52", "#38BDF8", "#A78BFA",
-    "#F472B6", "#FBBF24", "#FB7185", "#2DD4BF"
-  ];
-
+  const emoteCache = new Map();
   const lastColor = {};
+  const usedNames = new Set();
 
   function randomItem(items) {
     return items[Math.floor(Math.random() * items.length)];
   }
 
-  function getPlatform(row) {
+  function generateUsername() {
+    let username;
+
+    do {
+      const adjective = randomItem(adjectives);
+      const noun = randomItem(nouns);
+      const number = Math.random() < 0.8
+        ? Math.floor(10 + Math.random() * 989)
+        : "";
+
+      username = adjective + noun + number;
+    } while (usedNames.has(username));
+
+    usedNames.add(username);
+
+    if (usedNames.size > 500) {
+      usedNames.clear();
+      usedNames.add(username);
+    }
+
+    return username;
+  }
+
+  function getOriginalPlatform(row) {
     const icon = row.querySelector("img.hl-source-type");
 
     return (
@@ -59,22 +126,17 @@
     ).toLowerCase();
   }
 
-  function getFallbackColors(platform) {
-    if (platform.includes("twitch")) return twitchFallback;
-    if (platform.includes("youtube")) return youtubeFallback;
-    if (platform.includes("kick")) return kickFallback;
-
-    return twitchFallback;
+  function getRandomPlatform() {
+    return randomItem(platformChoices);
   }
 
-  // Collect actual username colors from real messages on the same platform.
   function getPlatformColors(platform) {
     const colors = new Set();
 
     document.querySelectorAll(
       '.highlight-chat:not([data-ssn-fake-reaction="1"])'
     ).forEach((row) => {
-      if (getPlatform(row) !== platform) return;
+      if (getOriginalPlatform(row) !== platform) return;
 
       const username = row.querySelector(".hl-name");
       if (!username) return;
@@ -88,43 +150,96 @@
       }
     });
 
+    if (colors.size === 0) {
+      return platformColors[platform] || platformColors.twitch;
+    }
+
     return [...colors];
   }
 
-  function getRandomUsernameColor(platform) {
-    let colors = getPlatformColors(platform);
+  function getRandomColor(platform) {
+    const colors = getPlatformColors(platform);
 
-    // Use platform fallback colors if real chat colors aren't available.
-    if (colors.length === 0) {
-      colors = getFallbackColors(platform);
-    }
-
-    // Avoid repeating the immediately previous color when possible.
-    let availableColors = colors.filter(
+    let available = colors.filter(
       color => color !== lastColor[platform]
     );
 
-    if (availableColors.length === 0) {
-      availableColors = colors;
-    }
+    if (available.length === 0) available = colors;
 
-    const selectedColor = randomItem(availableColors);
-    lastColor[platform] = selectedColor;
+    const color = randomItem(available);
+    lastColor[platform] = color;
 
-    return selectedColor;
+    return color;
   }
 
-  function makeFakeMessage(sourceRow) {
-    const username =
-      randomItem(names) + Math.floor(10 + Math.random() * 89);
+  // Collect real emote images separately for each platform.
+  function collectEmotes(row) {
+    if (!row || row.dataset.ssnFakeReaction === "1") return;
+
+    const platform = getOriginalPlatform(row);
+    const content = row.querySelector(".hl-content");
+
+    if (!content || !platform) return;
+
+    if (!emoteCache.has(platform)) {
+      emoteCache.set(platform, []);
+    }
+
+    const cache = emoteCache.get(platform);
+
+    const images = content.querySelectorAll(
+      "img.emote, img.regular-emote, img[class*='emote'], .emote img, .regular-emote img"
+    );
+
+    images.forEach((img) => {
+      const src = img.currentSrc || img.src;
+
+      if (!src || cache.some(item => item.src === src)) return;
+
+      cache.push({
+        src,
+        element: img
+      });
+    });
+  }
+
+  function addRealEmotes(content, platform) {
+    const cache = emoteCache.get(platform) || [];
+
+    if (cache.length === 0) return;
+    if (Math.random() > 0.55) return;
+
+    const amount = Math.random() < 0.7 ? 1 : 2;
+
+    for (let i = 0; i < amount; i++) {
+      const selected = randomItem(cache);
+      const original = selected.element;
+
+      if (!original) continue;
+
+      const clone = original.cloneNode(true);
+
+      clone.removeAttribute("id");
+      clone.removeAttribute("onerror");
+
+      content.appendChild(document.createTextNode(" "));
+      content.appendChild(clone);
+    }
+  }
+
+  function generateReaction() {
+    return randomItem(reactions)();
+  }
+
+  function makeFakeMessage() {
+    const username = generateUsername();
+
+    // Every fake message independently gets a random platform.
+    const platform = getRandomPlatform();
 
     const row = document.createElement("div");
-    row.className = sourceRow.className || "highlight-chat";
-    row.classList.remove("odd", "even");
+    row.className = "highlight-chat";
     row.dataset.ssnFakeReaction = "1";
-
-    const platform = getPlatform(sourceRow);
-
     row.dataset.sourceType = platform;
     row.dataset.username = username;
     row.dataset.chatname = username;
@@ -132,44 +247,66 @@
     const message = document.createElement("div");
     message.className = "hl-message";
 
-    // Preserve the exact original platform icon.
-    const originalIcon = sourceRow.querySelector("img.hl-source-type");
+    // Use the selected platform's actual SSN icon asset.
+    const icon = document.createElement("img");
+    icon.src = iconPaths[platform];
+    icon.className = "icon hl-source-type";
+    icon.dataset.iconName = platform;
+    icon.alt = platform;
+    icon.onerror = function () {
+      this.style.display = "none";
+    };
 
-    if (originalIcon) {
-      const icon = originalIcon.cloneNode(true);
-      icon.removeAttribute("onerror");
-      message.appendChild(icon);
-    }
-
-    // Give every fake username a randomized platform color.
+    // Random username and matching platform color.
     const name = document.createElement("div");
     name.className = "hl-name";
     name.dir = "auto";
     name.textContent = username + ":";
-    name.style.color = getRandomUsernameColor(platform);
+    name.style.color = getRandomColor(platform);
 
-    // Keep reaction messages unchanged.
+    // Fresh randomly generated message.
     const content = document.createElement("span");
     content.className = "hl-content";
     content.dir = "auto";
-    content.textContent = randomItem(reactions);
+    content.appendChild(document.createTextNode(generateReaction()));
 
-    // No badges.
-    message.append(name, content);
+    // Only use real emotes collected from that selected platform.
+    addRealEmotes(content, platform);
+
+    message.append(icon, name, content);
     row.appendChild(message);
 
     return row;
+  }
+
+  function getMessageText(content) {
+    const text = content.textContent || "";
+
+    const imageNames = [...content.querySelectorAll("img")].map(img =>
+      [
+        img.alt,
+        img.title,
+        img.dataset.emoteName,
+        img.dataset.name
+      ].filter(Boolean).join(" ")
+    ).join(" ");
+
+    return `${text} ${imageNames}`;
   }
 
   function addReactions(sourceRow) {
     if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
-    // Only inspect actual message content, never usernames.
+    // The trigger checks ONLY message content on every platform.
     const content = sourceRow.querySelector(".hl-content");
     if (!content) return;
 
-    if (!TRIGGER_REGEX.test(content.textContent || "")) return;
+    collectEmotes(sourceRow);
+
+    const messageText = getMessageText(content);
+
+    if (!TRIGGER_REGEX.test(messageText)) return;
 
     sourceRow.dataset.ssnLolProcessed = "1";
 
@@ -183,7 +320,7 @@
           previousRow = sourceRow;
         }
 
-        const fakeRow = makeFakeMessage(sourceRow);
+        const fakeRow = makeFakeMessage();
 
         if (previousRow.parentNode) {
           previousRow.parentNode.insertBefore(
@@ -201,16 +338,30 @@
     if (!(node instanceof Element)) return;
 
     if (node.matches(".highlight-chat")) {
+      collectEmotes(node);
       addReactions(node);
     }
 
-    node.querySelectorAll(".highlight-chat").forEach(addReactions);
+    node.querySelectorAll(".highlight-chat").forEach((row) => {
+      collectEmotes(row);
+      addReactions(row);
+    });
 
     const parentRow = node.closest(".highlight-chat");
-    if (parentRow) addReactions(parentRow);
+
+    if (parentRow) {
+      collectEmotes(parentRow);
+      addReactions(parentRow);
+    }
   }
 
-  document.querySelectorAll(".highlight-chat").forEach(addReactions);
+  // Inspect and collect emotes from all existing platform messages.
+  document.querySelectorAll(
+    '.highlight-chat:not([data-ssn-fake-reaction="1"])'
+  ).forEach((row) => {
+    collectEmotes(row);
+    addReactions(row);
+  });
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -219,7 +370,11 @@
           ".highlight-chat"
         );
 
-        if (row) addReactions(row);
+        if (row) {
+          collectEmotes(row);
+          addReactions(row);
+        }
+
         continue;
       }
 
@@ -228,7 +383,11 @@
           inspect(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
           const row = node.parentElement?.closest(".highlight-chat");
-          if (row) addReactions(row);
+
+          if (row) {
+            collectEmotes(row);
+            addReactions(row);
+          }
         }
       });
     }
