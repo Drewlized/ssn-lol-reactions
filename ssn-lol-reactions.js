@@ -27,57 +27,65 @@
   }
 
   function makeFakeMessage(sourceRow) {
-    const username = randomItem(names) + Math.floor(10 + Math.random() * 89);
+    const username =
+      randomItem(names) + Math.floor(10 + Math.random() * 89);
 
     const row = document.createElement("div");
     row.className = sourceRow.className || "highlight-chat";
     row.classList.remove("odd", "even");
     row.dataset.ssnFakeReaction = "1";
 
-    const platform = sourceRow.dataset.sourceType ||
-      sourceRow.getAttribute("data-source-type") || "";
+    // Preserve the original platform information.
+    row.dataset.sourceType =
+      sourceRow.dataset.sourceType ||
+      sourceRow.getAttribute("data-source-type") ||
+      "";
 
-    row.dataset.sourceType = platform;
     row.dataset.username = username;
     row.dataset.chatname = username;
 
     const message = document.createElement("div");
     message.className = "hl-message";
 
-    // Clone the real Social Stream Ninja platform icon.
-    const originalIcon = sourceRow.querySelector(".hl-source-type");
-    let icon = null;
+    // Clone the exact real Social Stream Ninja platform icon.
+    const originalIcon = sourceRow.querySelector(
+      "img.hl-source-type"
+    );
 
     if (originalIcon) {
-      icon = originalIcon.cloneNode(true);
+      const icon = originalIcon.cloneNode(true);
+      icon.removeAttribute("onerror");
+      message.appendChild(icon);
     }
 
-    // Create the fake username and copy the original username color.
+    // Create username and copy its exact inline color.
+    const originalName = sourceRow.querySelector(".hl-name");
+
     const name = document.createElement("div");
     name.className = "hl-name";
     name.dir = "auto";
     name.textContent = username + ":";
 
-    const originalName = sourceRow.querySelector(".hl-name");
-
     if (originalName) {
-      const originalColor = window.getComputedStyle(originalName).color;
-      name.style.color = originalColor;
+      // Copy inline style, including the original color.
+      const originalStyle = originalName.getAttribute("style");
+
+      if (originalStyle) {
+        name.setAttribute("style", originalStyle);
+      } else {
+        name.style.color =
+          window.getComputedStyle(originalName).color;
+      }
     }
 
-    // Keep the reaction messages exactly as before.
+    // Original reaction messages remain unchanged.
     const content = document.createElement("span");
     content.className = "hl-content";
     content.dir = "auto";
     content.textContent = randomItem(reactions);
 
-    // No fake badges.
-    if (icon) {
-      message.append(icon, name, content);
-    } else {
-      message.append(name, content);
-    }
-
+    // No badges.
+    message.append(name, content);
     row.appendChild(message);
 
     return row;
@@ -87,9 +95,12 @@
     if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
-    // Only inspect actual message content, never the username.
+    // Only check actual message content, never the username.
     const content = sourceRow.querySelector(".hl-content");
-    if (!content || !TRIGGER_REGEX.test(content.textContent || "")) return;
+
+    if (!content) return;
+
+    if (!TRIGGER_REGEX.test(content.textContent || "")) return;
 
     sourceRow.dataset.ssnLolProcessed = "1";
 
@@ -110,6 +121,7 @@
             fakeRow,
             previousRow.nextSibling
           );
+
           previousRow = fakeRow;
         }
       }, REACTION_DELAY_MS * (i + 1));
@@ -126,16 +138,25 @@
     node.querySelectorAll(".highlight-chat").forEach(addReactions);
 
     const parentRow = node.closest(".highlight-chat");
-    if (parentRow) addReactions(parentRow);
+
+    if (parentRow) {
+      addReactions(parentRow);
+    }
   }
 
+  // Inspect existing chat messages.
   document.querySelectorAll(".highlight-chat").forEach(addReactions);
 
+  // Watch for new messages and content updates.
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === "characterData") {
-        const row = mutation.target.parentElement?.closest(".highlight-chat");
+        const row = mutation.target.parentElement?.closest(
+          ".highlight-chat"
+        );
+
         if (row) addReactions(row);
+
         continue;
       }
 
@@ -144,6 +165,7 @@
           inspect(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
           const row = node.parentElement?.closest(".highlight-chat");
+
           if (row) addReactions(row);
         }
       });
