@@ -22,15 +22,17 @@
     "HAHAHAHA", "W CHAT", "THIS IS TOO FUNNY", "STOPPPP", "NO WAY LOL"
   ];
 
-  const usernameColors = [
-    "#ff6b6b", "#ff9f43", "#feca57", "#1dd1a1",
-    "#48dbfb", "#54a0ff", "#5f27cd", "#a55eea",
-    "#ff6bcb", "#00d2d3", "#c8d6e5", "#ee5253",
-    "#10ac84", "#2e86de", "#e056fd", "#f368e0"
-  ];
-
   function randomItem(items) {
     return items[Math.floor(Math.random() * items.length)];
+  }
+
+  // Generate a completely new random color every time.
+  function getRandomColor() {
+    const red = Math.floor(Math.random() * 256);
+    const green = Math.floor(Math.random() * 256);
+    const blue = Math.floor(Math.random() * 256);
+
+    return `rgb(${red}, ${green}, ${blue})`;
   }
 
   function makeFakeMessage(sourceRow) {
@@ -53,7 +55,7 @@
     const message = document.createElement("div");
     message.className = "hl-message";
 
-    // Clone the exact original social-media icon.
+    // Preserve the original social-media icon.
     const originalIcon = sourceRow.querySelector("img.hl-source-type");
 
     if (originalIcon) {
@@ -62,14 +64,13 @@
       message.appendChild(icon);
     }
 
-    // Random username color for every fake reaction.
+    // Generate a fresh random color for this username.
     const name = document.createElement("div");
     name.className = "hl-name";
     name.dir = "auto";
     name.textContent = username + ":";
-    name.style.color = randomItem(usernameColors);
+    name.style.color = getRandomColor();
 
-    // Reaction message.
     const content = document.createElement("span");
     content.className = "hl-content";
     content.dir = "auto";
@@ -85,7 +86,6 @@
     if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
-    // Only inspect message content, never usernames.
     const content = sourceRow.querySelector(".hl-content");
     if (!content) return;
 
