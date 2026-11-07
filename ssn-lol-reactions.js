@@ -5,122 +5,168 @@
   if (window.__ssnLolReactionsInstalled) return;
   window.__ssnLolReactionsInstalled = true;
 
+  // ==========================================
+  // SETTINGS
+  // ==========================================
+
   const MIN_REACTIONS = 10;
   const MAX_REACTIONS = 20;
-  const REACTION_DELAY_MS = 700;
 
-  // Detect funny messages in the actual message content
-  // across Twitch, YouTube, and Kick.
-  const TRIGGER_REGEX =
-    /\b(?:lol+|lo+|lmao+|lmfao+|rofl+|haha+|hehe+|xd+|kekw|kek|lulw?|omegalul|lolwut|pogs|im dead|i'm dead|im weak|i'm weak|dead af|crying|dying|im crying|i'm crying|no way|bro what|thats funny|that's funny|too funny|im wheezing|i'm wheezing|bruh|nahhh+|lmaooo+)\b|😂|🤣|💀|😭|😹|😆|😜|🤡/i;
+  const MIN_MESSAGE_DELAY = 500;
+  const MAX_MESSAGE_DELAY = 1300;
 
-  const adjectives = [
-    "Sleepy", "Cosmic", "Turbo", "Sneaky", "Goofy",
-    "Chaotic", "Lucky", "Tiny", "Funky", "Spicy",
-    "Frosty", "Golden", "Bouncy", "Cursed", "Happy",
-    "Wobbly", "Neon", "Crispy", "Wild", "Fluffy",
-    "Silly", "Mighty", "Nervous", "Electric", "Mystic",
-    "Pixel", "Chunky", "Speedy", "Cheeky", "Dizzy",
-    "Chill", "Wacky", "Hyper", "Cloudy", "Sleepy",
-    "Savage", "Crazy", "Random", "Goated", "Icy",
-    "Shiny", "Sneaky", "Broke", "Lucky", "Dusty"
+  const MIN_GROUP_DELAY = 5000;
+  const MAX_GROUP_DELAY = 11000;
+
+  const MAX_RECENT_MESSAGES = 250;
+
+  // ==========================================
+  // REALISTIC NAMES
+  // ==========================================
+
+  const firstNames = [
+    "Liana", "Alex", "Sophie", "Jordan", "Mason",
+    "Kai", "Olivia", "Ethan", "Lily", "Noah",
+    "Ava", "Lucas", "Mia", "Logan", "Chloe",
+    "Ryan", "Ella", "Leo", "Amelia", "Jayden",
+    "Isabella", "Daniel", "Zoe", "Caleb", "Emily",
+    "Nathan", "Grace", "Dylan", "Hannah", "Aiden",
+    "Luca", "Layla", "Owen", "Aria", "Eli",
+    "Maya", "Jack", "Nina", "Evan", "Ruby",
+    "Theo", "Leah", "Sam", "Ellie", "Max",
+    "Avery", "Tyler", "Ivy", "Jules", "Jamie",
+    "Harper", "Carter", "Mila", "Adrian", "Riley",
+    "Lena", "Blake", "Lola", "Miles", "Ellis",
+    "Emery", "Finn", "Sadie", "Asher", "Alexis",
+    "Jade", "Cameron", "Skye", "Jaxon", "Tessa",
+    "Morgan", "Elliot", "Violet", "Parker", "Daisy"
   ];
 
-  const nouns = [
-    "Panda", "Potato", "Wizard", "Koala", "Penguin",
-    "Noodle", "Pickle", "Goblin", "Turtle", "Banana",
-    "Fox", "Mango", "Dinosaur", "Waffle", "Monkey",
-    "Dragon", "Toast", "Duck", "Bunny", "Muffin",
-    "Cactus", "Raccoon", "Shark", "Goose", "Cookie",
-    "Robot", "Donut", "Frog", "Kitten", "Llama",
-    "Chicken", "Nugget", "Blob", "Coconut", "Gremlin",
-    "Potato", "Crab", "Wizard", "Squirrel", "Burrito",
-    "Hamster", "Mushroom", "Clown", "Lobster", "Melon"
+  const nicknames = [
+    "liana", "alex", "sophie", "kai", "mason",
+    "lily", "noah", "ava", "lucas", "mia",
+    "logan", "chloe", "ryan", "ella", "leo",
+    "zoe", "dylan", "emily", "nina", "ruby",
+    "theo", "max", "ivy", "jamie", "harper",
+    "mila", "riley", "lena", "blake", "miles",
+    "finn", "sadie", "jade", "skye", "tessa"
   ];
 
-  const emojis = [
-    "😂", "😭", "💀", "🤣", "😹", "😆",
-    "🤡", "🔥", "💀💀", "😭😭", "LMAOOO",
-    "NAHHH", "BROOO", "💀😭", "HELP", "💀💀💀",
-    "😭💀", "😂😂", "🤣🤣", "LMAO", "AIN'T NO WAY"
+  const usernamePrefixes = [
+    "its", "hey", "just", "real", "little",
+    "only", "that", "the", "im", "probably",
+    "simply", "not", "actually", "your"
   ];
 
-  // Large phrase pools create many possible combinations.
-  const openings = [
-    "BRO", "NAHH", "YO", "WAIT", "DUDE",
-    "AIN'T NO WAY", "HELPPP", "IM SORRY",
-    "BROOO", "WHAT", "NO SHOT", "PLEASE",
-    "IM DONE", "STOP", "LMAOOO", "YOOO",
-    "NOT AGAIN", "I CANT", "OH MY GOD",
-    "WHAT DID I JUST WATCH", "BRO PLEASE"
+  const usernameSuffixes = [
+    "plays", "online", "live", "here", "gaming",
+    "world", "vibes", "streams", "lol", "island"
   ];
 
-  const reactions = [
-    "IM CRYING",
-    "IM ACTUALLY DEAD",
-    "THAT WAS CRAZY",
-    "I CANT BREATHE",
-    "IM WHEEZING",
-    "THATS INSANE",
-    "THIS IS TOO FUNNY",
-    "IM DONE BRO",
-    "WHY IS THIS SO FUNNY",
-    "I WAS NOT READY",
-    "IM LOSING IT",
-    "THAT CAUGHT ME OFF GUARD",
-    "BRO WHAT WAS THAT",
-    "IM WEAK",
-    "THIS CANNOT BE REAL",
-    "I CANT WITH THIS",
-    "NAH THAT WAS WILD",
-    "IM GONE",
-    "THAT TOOK ME OUT",
-    "BRO IS TOO FUNNY",
-    "IM ACTUALLY LAUGHING",
-    "WHAT IS HAPPENING",
-    "NO WAY THAT JUST HAPPENED",
-    "THAT WAS PERSONAL",
-    "IM IN TEARS",
-    "I DID NOT EXPECT THAT",
-    "THAT WAS SO RANDOM",
-    "BRO COOKED",
-    "THIS STREAM IS CRAZY",
-    "I'M NEVER RECOVERING"
-  ];
+  const usedNames = new Set();
+  const usernameColors = new Map();
 
-  const endings = [
-    "💀", "😭", "😂", "🤣", "💀😭",
-    "😭😭", "LMAOOO", "HELP", "BROOO 💀",
-    "NAHHH 😭", "I CANT 💀", "😂😂😂",
-    "IM DONE 😭", "NO WAY 💀", "LOL",
-    "LMAO 😭", "💀💀💀", "BRO 😭",
-    "AIN'T NO WAY 😂", "HELP ME 💀"
-  ];
+  function randomItem(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+
+  function randomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function generateUsername() {
+    let username;
+    let attempts = 0;
+
+    do {
+      const style = randomNumber(1, 5);
+      const first = randomItem(firstNames);
+      const nickname = randomItem(nicknames);
+
+      if (style === 1) {
+        username = first;
+      } else if (style === 2) {
+        username = nickname + randomItem(["", "_", "."]) +
+          randomItem(firstNames);
+      } else if (style === 3) {
+        username = randomItem(usernamePrefixes) +
+          first;
+      } else if (style === 4) {
+        username = first.toLowerCase() +
+          randomItem(usernameSuffixes);
+      } else {
+        username = first + randomItem(["", "_", "."]) +
+          randomItem(["xo", "hey", "plays", "vibes"]);
+      }
+
+      attempts++;
+    } while (
+      usedNames.has(username.toLowerCase()) &&
+      attempts < 100
+    );
+
+    if (usedNames.has(username.toLowerCase())) {
+      username = randomItem(firstNames) +
+        randomItem(["", "_", "xo"]);
+    }
+
+    usedNames.add(username.toLowerCase());
+
+    return username;
+  }
+
+  // ==========================================
+  // PERMANENT USER COLORS
+  // ==========================================
 
   const platformColors = {
     twitch: [
-      "#0000FF", "#8A2BE2", "#5F9EA0", "#D2691E",
-      "#FF7F50", "#1E90FF", "#B22222", "#DAA520",
-      "#008000", "#FF69B4", "#FF4500", "#FF0000",
-      "#2E8B57", "#00FF7F", "#9ACD32"
+      "#9147FF", "#00B5AD", "#FF69B4", "#FFD166",
+      "#1E90FF", "#FF7F50", "#32CD32", "#DA70D6",
+      "#00CED1", "#FF4500", "#9370DB", "#20B2AA",
+      "#E6A23C", "#6495ED", "#DC69A0"
     ],
+
     youtube: [
       "#4285F4", "#EA4335", "#34A853", "#FBBC05",
       "#AB47BC", "#00ACC1", "#FF7043", "#7E57C2",
       "#26A69A", "#EC407A", "#5C6BC0", "#9CCC65"
     ],
+
     kick: [
       "#53FC18", "#8CEB52", "#38BDF8", "#A78BFA",
       "#F472B6", "#FBBF24", "#FB7185", "#2DD4BF"
     ]
   };
 
-  // Twitch and YouTube are more common than Kick.
+  function getUsernameColor(username, platform) {
+    const key = username.toLowerCase();
+
+    if (usernameColors.has(key)) {
+      return usernameColors.get(key);
+    }
+
+    const colors = platformColors[platform] ||
+      platformColors.twitch;
+
+    const color = randomItem(colors);
+
+    usernameColors.set(key, color);
+
+    return color;
+  }
+
+  // ==========================================
+  // RANDOM PLATFORM SELECTION
+  // ==========================================
+
   const platformChoices = [
     "twitch", "twitch", "twitch", "twitch", "twitch",
     "twitch", "twitch", "twitch", "twitch",
+
     "youtube", "youtube", "youtube", "youtube", "youtube",
     "youtube", "youtube", "youtube", "youtube",
+
     "kick", "kick"
   ];
 
@@ -130,40 +176,15 @@
     kick: "./sources/images/kick.png"
   };
 
+  function getRandomPlatform() {
+    return randomItem(platformChoices);
+  }
+
+  // ==========================================
+  // REAL EMOTE COLLECTION
+  // ==========================================
+
   const emoteCache = new Map();
-  const lastColor = {};
-  const usedNames = new Set();
-  const recentMessages = [];
-
-  const MAX_RECENT_MESSAGES = 150;
-
-  function randomItem(items) {
-    return items[Math.floor(Math.random() * items.length)];
-  }
-
-  function generateUsername() {
-    let username;
-
-    do {
-      const adjective = randomItem(adjectives);
-      const noun = randomItem(nouns);
-
-      const number = Math.random() < 0.85
-        ? Math.floor(10 + Math.random() * 989)
-        : "";
-
-      username = adjective + noun + number;
-    } while (usedNames.has(username));
-
-    usedNames.add(username);
-
-    if (usedNames.size > 3000) {
-      usedNames.clear();
-      usedNames.add(username);
-    }
-
-    return username;
-  }
 
   function getOriginalPlatform(row) {
     const icon = row.querySelector("img.hl-source-type");
@@ -174,52 +195,6 @@
       icon?.dataset.iconName ||
       ""
     ).toLowerCase();
-  }
-
-  function getRandomPlatform() {
-    return randomItem(platformChoices);
-  }
-
-  function getPlatformColors(platform) {
-    const colors = new Set();
-
-    document.querySelectorAll(
-      '.highlight-chat:not([data-ssn-fake-reaction="1"])'
-    ).forEach((row) => {
-      if (getOriginalPlatform(row) !== platform) return;
-
-      const username = row.querySelector(".hl-name");
-      if (!username) return;
-
-      const color =
-        username.style.color ||
-        window.getComputedStyle(username).color;
-
-      if (color && color !== "rgba(0, 0, 0, 0)") {
-        colors.add(color);
-      }
-    });
-
-    if (colors.size === 0) {
-      return platformColors[platform] || platformColors.twitch;
-    }
-
-    return [...colors];
-  }
-
-  function getRandomColor(platform) {
-    const colors = getPlatformColors(platform);
-
-    let available = colors.filter(
-      color => color !== lastColor[platform]
-    );
-
-    if (available.length === 0) available = colors;
-
-    const color = randomItem(available);
-    lastColor[platform] = color;
-
-    return color;
   }
 
   function collectEmotes(row) {
@@ -255,15 +230,14 @@
   function addRealEmotes(content, platform) {
     const cache = emoteCache.get(platform) || [];
 
-    if (cache.length === 0) return;
-    if (Math.random() > 0.5) return;
+    if (!cache.length || Math.random() > 0.45) return;
 
-    const amount = Math.random() < 0.75 ? 1 : 2;
+    const amount = Math.random() < 0.8 ? 1 : 2;
 
     for (let i = 0; i < amount; i++) {
       const selected = randomItem(cache);
 
-      if (!selected || !selected.element) continue;
+      if (!selected?.element) continue;
 
       const clone = selected.element.cloneNode(true);
 
@@ -275,50 +249,221 @@
     }
   }
 
-  function rememberMessage(message) {
+  // ==========================================
+  // REACTION CATEGORIES
+  // ==========================================
+
+  const reactions = {
+
+    greeting: [
+      () => `HI DREWKU ${randomItem(["👋", "❤️", "😭", "😂"])}`,
+      () => `HEY DREW ${randomItem(["!!", "!! ❤️", " 😂", " 👋"])}`,
+      () => `YO DREWKU`,
+      () => `HELLOOO DREW`,
+      () => `HIII DREWKU`,
+      () => `WASSUP DREW`,
+      () => `HEY EVERYONE`,
+      () => `HI CHAT`,
+      () => `GOOD TO SEE YOU DREW`,
+      () => `DREW IS LIVE LETS GOOO`
+    ],
+
+    win: [
+      () => `W`,
+      () => `W DREWKU`,
+      () => `COMMON DREW W`,
+      () => `BIG W`,
+      () => `W CHAT`,
+      () => `DREW IS COOKING`,
+      () => `THATS A W`,
+      () => `ABSOLUTE W`,
+      () => `WWW`,
+      () => `W STREAM`,
+      () => `DREW NEVER MISSES`,
+      () => `W MOMENT ${randomItem(["🔥", "💯", "😭"])}`
+    ],
+
+    funny: [
+      () => `${randomItem(["BRO", "NAHH", "YO", "WAIT", "DUDE"])} ${randomItem(["WHAT", "PLEASE", "STOP", "IM DONE"])} ${randomItem(["💀", "😭", "😂"])}`,
+      () => `${randomItem(["LMAOOO", "LMFAOOO", "HAHAHAHA", "IM CRYING", "NAHHH"])} ${randomItem(["💀", "😭", "😂"])}`,
+      () => `${randomItem(["IM", "BRO IM", "NAH IM"])} ${randomItem(["DEAD", "WEAK", "CRYING", "WHEEZING"])} ${randomItem(["😭", "💀"])}`,
+      () => `${randomItem(["THAT WAS", "THIS IS", "BRO THAT WAS"])} ${randomItem(["CRAZY", "SO FUNNY", "WILD", "UNREAL"])} ${randomItem(["💀", "😭"])}`,
+      () => `I CANT BREATHE ${randomItem(["😭", "💀", "😂"])}`,
+      () => `WHAT DID I JUST WATCH 💀`,
+      () => `BRO IS TOO FUNNY 😭`,
+      () => `IM ACTUALLY LOSING IT`,
+      () => `THAT CAUGHT ME OFF GUARD`,
+      () => `NAH THIS STREAM IS CRAZY`,
+      () => `HELP ME LMAOOO`,
+      () => `I WAS NOT READY FOR THAT`,
+      () => `WHY IS THIS SO FUNNY 😭`,
+      () => `BRO PLEASEEE 💀`,
+      () => `THAT TOOK ME OUT`
+    ],
+
+    horror: [
+      () => `WHAT WAS THAT 😭`,
+      () => `IM SCARED`,
+      () => `BRO RUNNN`,
+      () => `NOPE NOPE NOPE`,
+      () => `TURN AROUND`,
+      () => `DONT GO IN THERE`,
+      () => `IM ACTUALLY SCARED 💀`,
+      () => `WHAT IS THAT THING`,
+      () => `BEHIND YOU`,
+      () => `BRO LOOK BEHIND YOU`,
+      () => `NAHHH IM LEAVING`,
+      () => `MY HEART JUST DROPPED`,
+      () => `THAT JUMPSCARE 😭`,
+      () => `I JUMPED SO HARD`,
+      () => `WHY WOULD YOU GO THERE`,
+      () => `IM NOT WATCHING THIS ALONE`,
+      () => `THAT WAS TERRIFYING`,
+      () => `RUN DREW RUN`,
+      () => `OH MY GOD`,
+      () => `I WAS NOT READY FOR THAT`
+    ],
+
+    angry: [
+      () => `BRO NO`,
+      () => `THATS SO ANNOYING`,
+      () => `IM ACTUALLY MAD`,
+      () => `NAH THATS NOT FAIR`,
+      () => `WHY WOULD THAT HAPPEN`,
+      () => `BRO WHAT ARE YOU DOING`,
+      () => `THIS GAME IS RIGGED`,
+      () => `I WOULD BE SO MAD`,
+      () => `NO WAY THAT JUST HAPPENED`,
+      () => `THATS CRAZY UNFAIR`,
+      () => `IM LOSING MY MIND`,
+      () => `BROOOOO`,
+      () => `I CANT WITH THIS GAME`,
+      () => `THAT WAS SO BAD`,
+      () => `NAH I WOULD QUIT`
+    ],
+
+    support: [
+      () => `JUST SUBBED ❤️`,
+      () => `I SUBBED DREWKU`,
+      () => `SUBSCRIBED!`,
+      () => `JUST LIKED THE STREAM`,
+      () => `LEFT A LIKE ❤️`,
+      () => `LIKED AND SUBBED`,
+      () => `SHOWING SOME SUPPORT`,
+      () => `KEEP IT UP DREW`,
+      () => `LOVE THE STREAM`,
+      () => `ANOTHER LIKE FROM ME`,
+      () => `SUBBED LETS GOOO`,
+      () => `HIT THAT LIKE BUTTON`,
+      () => `YOU DESERVE MORE SUPPORT`,
+      () => `LOVE YOUR CONTENT`
+    ],
+
+    general: [
+      () => `HOW IS EVERYONE`,
+      () => `THIS STREAM IS FUN`,
+      () => `CHAT IS CRAZY`,
+      () => `WHAT GAME IS THIS`,
+      () => `IM HAVING A GOOD TIME`,
+      () => `LETS GOOOO`,
+      () => `W STREAM`,
+      () => `CHAT LOL`,
+      () => `BROOO`,
+      () => `YOOO`,
+      () => `THIS IS GREAT`,
+      () => `DREWKU 🔥`,
+      () => `LOL`,
+      () => `NO WAY`,
+      () => `WHAT`,
+      () => `HELPPP`
+    ]
+  };
+
+  // ==========================================
+  // CATEGORY DETECTION
+  // ==========================================
+
+  const categoryPatterns = {
+    greeting:
+      /\b(?:hi|hey|hello|yo|sup|wassup|what'?s up)\s+(?:drewku|drew)\b|\b(?:hi|hey|hello)\s+chat\b/i,
+
+    win:
+      /\b(?:w|ww|w+|common w|big w|w drewku|w drew|w chat|lets go|let's go|goated|nice shot|clutch|well played)\b/i,
+
+    support:
+      /\b(?:i subbed|just subbed|subscribed|i subscribed|i just subscribed|liked the stream|left a like|i liked|liked and subbed|hit the like|sub and like)\b/i,
+
+    horror:
+      /\b(?:scary|scared|jumpscare|jump scare|monster|ghost|horror|behind you|run|dont go|don't go|what was that|terrifying|scream|screaming|creepy|nope)\b/i,
+
+    angry:
+      /\b(?:mad|angry|annoying|unfair|rigged|this sucks|bruh no|not fair|i hate this|why game|so bad|frustrating|rage|raging)\b/i,
+
+    funny:
+      /\b(?:lol+|lo+|lmao+|lmfao+|rofl+|haha+|hehe+|xd+|kekw|kek|lulw?|omegalul|pogs|im dead|i'm dead|im weak|i'm weak|dead af|crying|dying|im crying|i'm crying|thats funny|that's funny|too funny|im wheezing|i'm wheezing|bruh|nahhh+)\b|😂|🤣|💀|😭|😹|😆|🤡/i
+  };
+
+  function detectCategory(message) {
+    // Prioritize specific categories over general laughter.
+    const priority = [
+      "support",
+      "greeting",
+      "horror",
+      "angry",
+      "win",
+      "funny"
+    ];
+
+    for (const category of priority) {
+      if (categoryPatterns[category].test(message)) {
+        return category;
+      }
+    }
+
+    return null;
+  }
+
+  // ==========================================
+  // MESSAGE VARIETY
+  // ==========================================
+
+  const recentMessages = [];
+
+  function generateReaction(category, burstMessages) {
+    const pool = reactions[category] || reactions.general;
+
+    let message;
+    let attempts = 0;
+
+    do {
+      message = randomItem(pool)();
+      attempts++;
+    } while (
+      (recentMessages.includes(message) ||
+        burstMessages.has(message)) &&
+      attempts < 40
+    );
+
+    burstMessages.add(message);
     recentMessages.push(message);
 
     if (recentMessages.length > MAX_RECENT_MESSAGES) {
       recentMessages.shift();
     }
-  }
-
-  function generateReaction() {
-    const styles = [
-      () => `${randomItem(openings)} ${randomItem(reactions)} ${randomItem(endings)}`,
-      () => `${randomItem(reactions)} ${randomItem(emojis)}`,
-      () => `${randomItem(openings)} ${randomItem(endings)}`,
-      () => `${randomItem(["LMAOOO", "LMFAOOO", "HAHAHAHA", "HEHEHE", "LOOOOOOL"])} ${randomItem(endings)}`,
-      () => `${randomItem(["BRO", "NAH", "WAIT", "YO", "DUDE"])} ${randomItem(["IM DEAD", "IM CRYING", "IM WEAK", "I CANT", "HELP ME"])} ${randomItem(emojis)}`,
-      () => `${randomItem(["THIS", "BRO THIS", "NAH THIS", "WHY IS THIS"])} ${randomItem(["SO FUNNY", "ACTUALLY CRAZY", "WILD", "UNREAL", "TOO MUCH"])} ${randomItem(endings)}`,
-      () => `${randomItem(["💀", "😭", "😂", "🤣"])} ${randomItem(["💀", "😭", "😂", "🤣"])} ${randomItem(["BRO", "HELP", "NAHHH", "LMAOOO"])}`,
-      () => `${randomItem(["IM", "BRO IM", "NAH IM", "ACTUALLY IM"])} ${randomItem(["DONE", "GONE", "CRYING", "WHEEZING", "DEAD"])} ${randomItem(emojis)}`,
-      () => `${randomItem(["NO WAY", "AIN'T NO WAY", "WHAT THE", "BRO WHAT", "HOW"])} ${randomItem(["😭", "💀", "😂", "🤣"])} ${randomItem(["LMAOOO", "HELP", "IM DONE", "NAHHH"])}`,
-      () => `${randomItem(["LUL", "LOL", "KEKW", "OMEGALUL", "HAHA", "LMAO"])} ${randomItem(emojis)}`
-    ];
-
-    let message = "";
-    let attempts = 0;
-
-    // Avoid repeating messages, especially in the same burst.
-    do {
-      message = randomItem(styles)();
-      attempts++;
-    } while (
-      recentMessages.includes(message) &&
-      attempts < 30
-    );
-
-    rememberMessage(message);
 
     return message;
   }
 
-  function makeFakeMessage() {
+  // ==========================================
+  // CREATE DEMO CHAT MESSAGE
+  // ==========================================
+
+  function makeFakeMessage(category, burstMessages) {
     const username = generateUsername();
     const platform = getRandomPlatform();
 
     const row = document.createElement("div");
+
     row.className = "highlight-chat";
     row.dataset.ssnFakeReaction = "1";
     row.dataset.sourceType = platform;
@@ -329,6 +474,7 @@
     message.className = "hl-message";
 
     const icon = document.createElement("img");
+
     icon.src = iconPaths[platform];
     icon.className = "icon hl-source-type";
     icon.dataset.iconName = platform;
@@ -339,17 +485,21 @@
     };
 
     const name = document.createElement("div");
+
     name.className = "hl-name";
     name.dir = "auto";
-    name.textContent = username + ":";
-    name.style.color = getRandomColor(platform);
+    name.textContent = username + " [DEMO]:";
+    name.style.color = getUsernameColor(username, platform);
 
     const content = document.createElement("span");
+
     content.className = "hl-content";
     content.dir = "auto";
 
     content.appendChild(
-      document.createTextNode(generateReaction())
+      document.createTextNode(
+        generateReaction(category, burstMessages)
+      )
     );
 
     addRealEmotes(content, platform);
@@ -360,10 +510,82 @@
     return row;
   }
 
+  // ==========================================
+  // RANDOMIZED REACTION TIMING
+  // ==========================================
+
+  function scheduleBurst(sourceRow, category) {
+    const total = randomNumber(
+      MIN_REACTIONS,
+      MAX_REACTIONS
+    );
+
+    const burstMessages = new Set();
+
+    let previousRow = sourceRow;
+    let elapsed = 0;
+    let scheduled = 0;
+
+    // Support-style messages appear in small groups.
+    const isSupport = category === "support";
+
+    while (scheduled < total) {
+      const groupSize = isSupport
+        ? Math.min(randomNumber(3, 4), total - scheduled)
+        : total - scheduled;
+
+      for (let i = 0; i < groupSize; i++) {
+        elapsed += randomNumber(
+          MIN_MESSAGE_DELAY,
+          MAX_MESSAGE_DELAY
+        );
+
+        const delay = elapsed;
+
+        window.setTimeout(() => {
+          if (!sourceRow.isConnected) return;
+
+          if (!previousRow.isConnected) {
+            previousRow = sourceRow;
+          }
+
+          const fakeRow = makeFakeMessage(
+            category,
+            burstMessages
+          );
+
+          if (previousRow.parentNode) {
+            previousRow.parentNode.insertBefore(
+              fakeRow,
+              previousRow.nextSibling
+            );
+
+            previousRow = fakeRow;
+          }
+        }, delay);
+
+        scheduled++;
+      }
+
+      if (isSupport && scheduled < total) {
+        elapsed += randomNumber(
+          MIN_GROUP_DELAY,
+          MAX_GROUP_DELAY
+        );
+      }
+    }
+  }
+
+  // ==========================================
+  // MESSAGE TRIGGER
+  // ==========================================
+
   function getMessageText(content) {
     const text = content.textContent || "";
 
-    const imageNames = [...content.querySelectorAll("img")].map(img =>
+    const imageNames = [
+      ...content.querySelectorAll("img")
+    ].map(img =>
       [
         img.alt,
         img.title,
@@ -376,50 +598,31 @@
   }
 
   function addReactions(sourceRow) {
-    if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
+    if (!sourceRow) return;
+
+    if (sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
     // Only inspect the message content, never the username.
     const content = sourceRow.querySelector(".hl-content");
+
     if (!content) return;
 
     collectEmotes(sourceRow);
 
     const messageText = getMessageText(content);
+    const category = detectCategory(messageText);
 
-    if (!TRIGGER_REGEX.test(messageText)) return;
+    if (!category) return;
 
     sourceRow.dataset.ssnLolProcessed = "1";
 
-    // Each funny message gets its own random reaction count.
-    const reactionCount =
-      Math.floor(
-        Math.random() * (MAX_REACTIONS - MIN_REACTIONS + 1)
-      ) + MIN_REACTIONS;
-
-    let previousRow = sourceRow;
-
-    for (let i = 0; i < reactionCount; i++) {
-      window.setTimeout(() => {
-        if (!sourceRow.isConnected) return;
-
-        if (!previousRow.isConnected) {
-          previousRow = sourceRow;
-        }
-
-        const fakeRow = makeFakeMessage();
-
-        if (previousRow.parentNode) {
-          previousRow.parentNode.insertBefore(
-            fakeRow,
-            previousRow.nextSibling
-          );
-
-          previousRow = fakeRow;
-        }
-      }, REACTION_DELAY_MS * (i + 1));
-    }
+    scheduleBurst(sourceRow, category);
   }
+
+  // ==========================================
+  // DOM OBSERVER
+  // ==========================================
 
   function inspect(node) {
     if (!(node instanceof Element)) return;
@@ -429,7 +632,7 @@
       addReactions(node);
     }
 
-    node.querySelectorAll(".highlight-chat").forEach((row) => {
+    node.querySelectorAll(".highlight-chat").forEach(row => {
       collectEmotes(row);
       addReactions(row);
     });
@@ -442,14 +645,15 @@
     }
   }
 
+  // Process messages already present.
   document.querySelectorAll(
     '.highlight-chat:not([data-ssn-fake-reaction="1"])'
-  ).forEach((row) => {
+  ).forEach(row => {
     collectEmotes(row);
     addReactions(row);
   });
 
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver(mutations => {
     for (const mutation of mutations) {
       if (mutation.type === "characterData") {
         const row = mutation.target.parentElement?.closest(
@@ -464,11 +668,13 @@
         continue;
       }
 
-      mutation.addedNodes.forEach((node) => {
+      mutation.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           inspect(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
-          const row = node.parentElement?.closest(".highlight-chat");
+          const row = node.parentElement?.closest(
+            ".highlight-chat"
+          );
 
           if (row) {
             collectEmotes(row);
@@ -494,5 +700,7 @@
 
   startObserver();
 
-  console.info("[SSN LOL reactions] Loaded successfully.");
+  console.info(
+    "[SSN Demo Reactions] Loaded successfully."
+  );
 })();
