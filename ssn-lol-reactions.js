@@ -5,10 +5,12 @@
   if (window.__ssnLolReactionsInstalled) return;
   window.__ssnLolReactionsInstalled = true;
 
-  const REACTION_COUNT = 5;
+  const MIN_REACTIONS = 10;
+  const MAX_REACTIONS = 20;
   const REACTION_DELAY_MS = 700;
 
-  // Triggers from message CONTENT across Twitch, YouTube, and Kick.
+  // Detect funny messages in the actual message content
+  // across Twitch, YouTube, and Kick.
   const TRIGGER_REGEX =
     /\b(?:lol+|lo+|lmao+|lmfao+|rofl+|haha+|hehe+|xd+|kekw|kek|lulw?|omegalul|lolwut|pogs|im dead|i'm dead|im weak|i'm weak|dead af|crying|dying|im crying|i'm crying|no way|bro what|thats funny|that's funny|too funny|im wheezing|i'm wheezing|bruh|nahhh+|lmaooo+)\b|😂|🤣|💀|😭|😹|😆|😜|🤡/i;
 
@@ -19,7 +21,9 @@
     "Wobbly", "Neon", "Crispy", "Wild", "Fluffy",
     "Silly", "Mighty", "Nervous", "Electric", "Mystic",
     "Pixel", "Chunky", "Speedy", "Cheeky", "Dizzy",
-    "Chill", "Wacky", "Hyper", "Cloudy"
+    "Chill", "Wacky", "Hyper", "Cloudy", "Sleepy",
+    "Savage", "Crazy", "Random", "Goated", "Icy",
+    "Shiny", "Sneaky", "Broke", "Lucky", "Dusty"
   ];
 
   const nouns = [
@@ -29,25 +33,68 @@
     "Dragon", "Toast", "Duck", "Bunny", "Muffin",
     "Cactus", "Raccoon", "Shark", "Goose", "Cookie",
     "Robot", "Donut", "Frog", "Kitten", "Llama",
-    "Chicken", "Nugget", "Blob", "Coconut"
+    "Chicken", "Nugget", "Blob", "Coconut", "Gremlin",
+    "Potato", "Crab", "Wizard", "Squirrel", "Burrito",
+    "Hamster", "Mushroom", "Clown", "Lobster", "Melon"
   ];
 
   const emojis = [
     "😂", "😭", "💀", "🤣", "😹", "😆",
     "🤡", "🔥", "💀💀", "😭😭", "LMAOOO",
-    "NAHHH", "BROOO", "💀😭", "HELP"
+    "NAHHH", "BROOO", "💀😭", "HELP", "💀💀💀",
+    "😭💀", "😂😂", "🤣🤣", "LMAO", "AIN'T NO WAY"
+  ];
+
+  // Large phrase pools create many possible combinations.
+  const openings = [
+    "BRO", "NAHH", "YO", "WAIT", "DUDE",
+    "AIN'T NO WAY", "HELPPP", "IM SORRY",
+    "BROOO", "WHAT", "NO SHOT", "PLEASE",
+    "IM DONE", "STOP", "LMAOOO", "YOOO",
+    "NOT AGAIN", "I CANT", "OH MY GOD",
+    "WHAT DID I JUST WATCH", "BRO PLEASE"
   ];
 
   const reactions = [
-    () => `BRO ${randomItem(["WHAT", "PLEASE", "STOP", "IM DONE", "NO WAY"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["LMAOOO", "LMFAOOO", "HAHAHAHA", "IM CRYING", "NAHHH"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["AIN'T NO WAY", "NO SHOT", "NOT ME", "WHAT DID I JUST SEE", "IM WEAK"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["BROOOO", "DUDEEE", "HELP ME", "I CANT", "STOPPPP"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["THIS IS CRAZY", "THAT WAS WILD", "IM ACTUALLY DEAD", "TOO FUNNY", "W CHAT"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["LUL", "LOL", "KEKW", "OMEGALUL", "HAHA"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["im", "bro im", "nah im", "actually im"])} ${randomItem(["dead", "crying", "wheezing", "weak", "done"])} ${randomItem(emojis)}`,
-    () => `${randomItem(["LOOOOOOL", "LMAOOOO", "HAHAHAHAHA", "HEHEHE", "LMFAOOOO"])}`,
-    () => `${randomItem(["WHAT", "BRO", "NAH", "YO", "WAIT"])} ${randomItem(["😭", "💀", "😂", "🤣"])} ${randomItem(["😭", "💀", "😂", "🤣"])}`
+    "IM CRYING",
+    "IM ACTUALLY DEAD",
+    "THAT WAS CRAZY",
+    "I CANT BREATHE",
+    "IM WHEEZING",
+    "THATS INSANE",
+    "THIS IS TOO FUNNY",
+    "IM DONE BRO",
+    "WHY IS THIS SO FUNNY",
+    "I WAS NOT READY",
+    "IM LOSING IT",
+    "THAT CAUGHT ME OFF GUARD",
+    "BRO WHAT WAS THAT",
+    "IM WEAK",
+    "THIS CANNOT BE REAL",
+    "I CANT WITH THIS",
+    "NAH THAT WAS WILD",
+    "IM GONE",
+    "THAT TOOK ME OUT",
+    "BRO IS TOO FUNNY",
+    "IM ACTUALLY LAUGHING",
+    "WHAT IS HAPPENING",
+    "NO WAY THAT JUST HAPPENED",
+    "THAT WAS PERSONAL",
+    "IM IN TEARS",
+    "I DID NOT EXPECT THAT",
+    "THAT WAS SO RANDOM",
+    "BRO COOKED",
+    "THIS STREAM IS CRAZY",
+    "I'M NEVER RECOVERING"
+  ];
+
+  const endings = [
+    "💀", "😭", "😂", "🤣", "💀😭",
+    "😭😭", "LMAOOO", "HELP", "BROOO 💀",
+    "NAHHH 😭", "I CANT 💀", "😂😂😂",
+    "IM DONE 😭", "NO WAY 💀", "LOL",
+    "LMAO 😭", "💀💀💀", "BRO 😭",
+    "AIN'T NO WAY 😂", "HELP ME 💀"
   ];
 
   const platformColors = {
@@ -68,8 +115,7 @@
     ]
   };
 
-  // Weighted platform selection:
-  // Twitch 45%, YouTube 45%, Kick 10%.
+  // Twitch and YouTube are more common than Kick.
   const platformChoices = [
     "twitch", "twitch", "twitch", "twitch", "twitch",
     "twitch", "twitch", "twitch", "twitch",
@@ -87,6 +133,9 @@
   const emoteCache = new Map();
   const lastColor = {};
   const usedNames = new Set();
+  const recentMessages = [];
+
+  const MAX_RECENT_MESSAGES = 150;
 
   function randomItem(items) {
     return items[Math.floor(Math.random() * items.length)];
@@ -98,7 +147,8 @@
     do {
       const adjective = randomItem(adjectives);
       const noun = randomItem(nouns);
-      const number = Math.random() < 0.8
+
+      const number = Math.random() < 0.85
         ? Math.floor(10 + Math.random() * 989)
         : "";
 
@@ -107,7 +157,7 @@
 
     usedNames.add(username);
 
-    if (usedNames.size > 500) {
+    if (usedNames.size > 3000) {
       usedNames.clear();
       usedNames.add(username);
     }
@@ -172,7 +222,6 @@
     return color;
   }
 
-  // Collect real emote images separately for each platform.
   function collectEmotes(row) {
     if (!row || row.dataset.ssnFakeReaction === "1") return;
 
@@ -198,7 +247,7 @@
 
       cache.push({
         src,
-        element: img
+        element: img.cloneNode(true)
       });
     });
   }
@@ -207,17 +256,16 @@
     const cache = emoteCache.get(platform) || [];
 
     if (cache.length === 0) return;
-    if (Math.random() > 0.55) return;
+    if (Math.random() > 0.5) return;
 
-    const amount = Math.random() < 0.7 ? 1 : 2;
+    const amount = Math.random() < 0.75 ? 1 : 2;
 
     for (let i = 0; i < amount; i++) {
       const selected = randomItem(cache);
-      const original = selected.element;
 
-      if (!original) continue;
+      if (!selected || !selected.element) continue;
 
-      const clone = original.cloneNode(true);
+      const clone = selected.element.cloneNode(true);
 
       clone.removeAttribute("id");
       clone.removeAttribute("onerror");
@@ -227,14 +275,47 @@
     }
   }
 
+  function rememberMessage(message) {
+    recentMessages.push(message);
+
+    if (recentMessages.length > MAX_RECENT_MESSAGES) {
+      recentMessages.shift();
+    }
+  }
+
   function generateReaction() {
-    return randomItem(reactions)();
+    const styles = [
+      () => `${randomItem(openings)} ${randomItem(reactions)} ${randomItem(endings)}`,
+      () => `${randomItem(reactions)} ${randomItem(emojis)}`,
+      () => `${randomItem(openings)} ${randomItem(endings)}`,
+      () => `${randomItem(["LMAOOO", "LMFAOOO", "HAHAHAHA", "HEHEHE", "LOOOOOOL"])} ${randomItem(endings)}`,
+      () => `${randomItem(["BRO", "NAH", "WAIT", "YO", "DUDE"])} ${randomItem(["IM DEAD", "IM CRYING", "IM WEAK", "I CANT", "HELP ME"])} ${randomItem(emojis)}`,
+      () => `${randomItem(["THIS", "BRO THIS", "NAH THIS", "WHY IS THIS"])} ${randomItem(["SO FUNNY", "ACTUALLY CRAZY", "WILD", "UNREAL", "TOO MUCH"])} ${randomItem(endings)}`,
+      () => `${randomItem(["💀", "😭", "😂", "🤣"])} ${randomItem(["💀", "😭", "😂", "🤣"])} ${randomItem(["BRO", "HELP", "NAHHH", "LMAOOO"])}`,
+      () => `${randomItem(["IM", "BRO IM", "NAH IM", "ACTUALLY IM"])} ${randomItem(["DONE", "GONE", "CRYING", "WHEEZING", "DEAD"])} ${randomItem(emojis)}`,
+      () => `${randomItem(["NO WAY", "AIN'T NO WAY", "WHAT THE", "BRO WHAT", "HOW"])} ${randomItem(["😭", "💀", "😂", "🤣"])} ${randomItem(["LMAOOO", "HELP", "IM DONE", "NAHHH"])}`,
+      () => `${randomItem(["LUL", "LOL", "KEKW", "OMEGALUL", "HAHA", "LMAO"])} ${randomItem(emojis)}`
+    ];
+
+    let message = "";
+    let attempts = 0;
+
+    // Avoid repeating messages, especially in the same burst.
+    do {
+      message = randomItem(styles)();
+      attempts++;
+    } while (
+      recentMessages.includes(message) &&
+      attempts < 30
+    );
+
+    rememberMessage(message);
+
+    return message;
   }
 
   function makeFakeMessage() {
     const username = generateUsername();
-
-    // Every fake message independently gets a random platform.
     const platform = getRandomPlatform();
 
     const row = document.createElement("div");
@@ -247,30 +328,30 @@
     const message = document.createElement("div");
     message.className = "hl-message";
 
-    // Use the selected platform's actual SSN icon asset.
     const icon = document.createElement("img");
     icon.src = iconPaths[platform];
     icon.className = "icon hl-source-type";
     icon.dataset.iconName = platform;
     icon.alt = platform;
+
     icon.onerror = function () {
       this.style.display = "none";
     };
 
-    // Random username and matching platform color.
     const name = document.createElement("div");
     name.className = "hl-name";
     name.dir = "auto";
     name.textContent = username + ":";
     name.style.color = getRandomColor(platform);
 
-    // Fresh randomly generated message.
     const content = document.createElement("span");
     content.className = "hl-content";
     content.dir = "auto";
-    content.appendChild(document.createTextNode(generateReaction()));
 
-    // Only use real emotes collected from that selected platform.
+    content.appendChild(
+      document.createTextNode(generateReaction())
+    );
+
     addRealEmotes(content, platform);
 
     message.append(icon, name, content);
@@ -298,7 +379,7 @@
     if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
-    // The trigger checks ONLY message content on every platform.
+    // Only inspect the message content, never the username.
     const content = sourceRow.querySelector(".hl-content");
     if (!content) return;
 
@@ -310,9 +391,15 @@
 
     sourceRow.dataset.ssnLolProcessed = "1";
 
+    // Each funny message gets its own random reaction count.
+    const reactionCount =
+      Math.floor(
+        Math.random() * (MAX_REACTIONS - MIN_REACTIONS + 1)
+      ) + MIN_REACTIONS;
+
     let previousRow = sourceRow;
 
-    for (let i = 0; i < REACTION_COUNT; i++) {
+    for (let i = 0; i < reactionCount; i++) {
       window.setTimeout(() => {
         if (!sourceRow.isConnected) return;
 
@@ -355,7 +442,6 @@
     }
   }
 
-  // Inspect and collect emotes from all existing platform messages.
   document.querySelectorAll(
     '.highlight-chat:not([data-ssn-fake-reaction="1"])'
   ).forEach((row) => {
