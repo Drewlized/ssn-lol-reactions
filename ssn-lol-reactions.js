@@ -22,6 +22,13 @@
     "HAHAHAHA", "W CHAT", "THIS IS TOO FUNNY", "STOPPPP", "NO WAY LOL"
   ];
 
+  const usernameColors = [
+    "#ff6b6b", "#ff9f43", "#feca57", "#1dd1a1",
+    "#48dbfb", "#54a0ff", "#5f27cd", "#a55eea",
+    "#ff6bcb", "#00d2d3", "#c8d6e5", "#ee5253",
+    "#10ac84", "#2e86de", "#e056fd", "#f368e0"
+  ];
+
   function randomItem(items) {
     return items[Math.floor(Math.random() * items.length)];
   }
@@ -35,7 +42,6 @@
     row.classList.remove("odd", "even");
     row.dataset.ssnFakeReaction = "1";
 
-    // Preserve the original platform information.
     row.dataset.sourceType =
       sourceRow.dataset.sourceType ||
       sourceRow.getAttribute("data-source-type") ||
@@ -47,10 +53,8 @@
     const message = document.createElement("div");
     message.className = "hl-message";
 
-    // Clone the exact real Social Stream Ninja platform icon.
-    const originalIcon = sourceRow.querySelector(
-      "img.hl-source-type"
-    );
+    // Clone the exact original social-media icon.
+    const originalIcon = sourceRow.querySelector("img.hl-source-type");
 
     if (originalIcon) {
       const icon = originalIcon.cloneNode(true);
@@ -58,33 +62,19 @@
       message.appendChild(icon);
     }
 
-    // Create username and copy its exact inline color.
-    const originalName = sourceRow.querySelector(".hl-name");
-
+    // Random username color for every fake reaction.
     const name = document.createElement("div");
     name.className = "hl-name";
     name.dir = "auto";
     name.textContent = username + ":";
+    name.style.color = randomItem(usernameColors);
 
-    if (originalName) {
-      // Copy inline style, including the original color.
-      const originalStyle = originalName.getAttribute("style");
-
-      if (originalStyle) {
-        name.setAttribute("style", originalStyle);
-      } else {
-        name.style.color =
-          window.getComputedStyle(originalName).color;
-      }
-    }
-
-    // Original reaction messages remain unchanged.
+    // Reaction message.
     const content = document.createElement("span");
     content.className = "hl-content";
     content.dir = "auto";
     content.textContent = randomItem(reactions);
 
-    // No badges.
     message.append(name, content);
     row.appendChild(message);
 
@@ -95,9 +85,8 @@
     if (!sourceRow || sourceRow.dataset.ssnFakeReaction === "1") return;
     if (sourceRow.dataset.ssnLolProcessed === "1") return;
 
-    // Only check actual message content, never the username.
+    // Only inspect message content, never usernames.
     const content = sourceRow.querySelector(".hl-content");
-
     if (!content) return;
 
     if (!TRIGGER_REGEX.test(content.textContent || "")) return;
@@ -138,16 +127,11 @@
     node.querySelectorAll(".highlight-chat").forEach(addReactions);
 
     const parentRow = node.closest(".highlight-chat");
-
-    if (parentRow) {
-      addReactions(parentRow);
-    }
+    if (parentRow) addReactions(parentRow);
   }
 
-  // Inspect existing chat messages.
   document.querySelectorAll(".highlight-chat").forEach(addReactions);
 
-  // Watch for new messages and content updates.
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === "characterData") {
@@ -156,7 +140,6 @@
         );
 
         if (row) addReactions(row);
-
         continue;
       }
 
@@ -165,7 +148,6 @@
           inspect(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
           const row = node.parentElement?.closest(".highlight-chat");
-
           if (row) addReactions(row);
         }
       });
