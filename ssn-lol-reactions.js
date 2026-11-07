@@ -488,7 +488,7 @@
 
     name.className = "hl-name";
     name.dir = "auto";
-    name.textContent = username + " [DEMO]:";
+    name.textContent = username + ":";
     name.style.color = getUsernameColor(username, platform);
 
     const content = document.createElement("span");
